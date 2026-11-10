@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日文隨時複習系統（300單字與語音版）</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f7f8fa;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-sub: #718096;
+            --primary: #4a5568;
+            --primary-hover: #2d3748;
+            --accent: #3182ce;
+            --accent-light: #ebf8ff;
+            --border: #e2e8f0;
+            --success: #38a169;
+            --success-bg: #f0fff4;
+            --error: #e53e3e;
+            --error-bg: #fff5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            padding: 32px;
+            margin-top: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-color);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .quiz-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            background: #fff;
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 16px;
+        }
+
+        .question-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .audio-btn {
+            background: var(--accent-light);
+            border: none;
+            color: var(--accent);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .audio-btn:active {
+            transform: scale(0.92);
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 14px 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            font-size: 1rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: var(--bg-color);
+            border-color: var(--text-sub);
+        }
+
+        .option-btn.correct {
+            background: var(--success-bg);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: var(--error-bg);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .explanation-box {
+            background: var(--bg-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .explanation-box.show {
+            display: block;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .next-btn {
+            background: var(--text-main);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--text-main);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>日文隨時複習系統</h1>
+            <p>已載入 300 個初學核心單字庫與語音朗讀</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMode('vocab')">模式一：單字測驗 (300字)</button>
+            <button class="tab-btn card-btn" onclick="switchMode('grammar')">模式二：文法解析</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="quiz-card">
+            <div class="meta-info">
+                <span id="questionTypeLabel">單字選擇題</span>
+                <span id="questionCount">題目 1 / 10</span>
+            </div>
+            
+            <div class="question-title" id="questionTitle">
+                <!-- 題目內容與發音按鈕 -->
+            </div>
+
+            <div class="options-grid" id="optionsContainer">
+                <!-- 選項按鈕 -->
+            </div>
+
+            <div class="explanation-box" id="explanationBox">
+                <!-- 詳解與所有選項翻譯 -->
+            </div>
+
+            <div class="action-row">
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一題</button>
+            </div>
+        </div>
+
+        <div class="stats" id="statsText">正確率：0%</div>
+    </div>
+
+    <!-- 載入 300 個單字資料庫 -->
+    <script src="words_data.js"></script>
+    <script>
+        let currentMode = 'vocab';
+        let currentIndex = 0;
+        let score = 0;
+        let currentQuestions = [];
+
+        // 內建文法題庫
+        const grammarQuestions = [
+            {
+                title: "私は毎日、日本語（ ）勉強します。",
+                options: [
+                    { text: "を", correct: false, desc: "「を」通常接在受詞後面（例如：本を読まう），表示動作直接涉及的對象。" },
+                    { text: "で", correct: true, desc: "「で」在此表示工具、手段或方式。「日本語で」意指「用日文（來進行學習）」。" },
+                    { text: "に", correct: false, desc: "「に」通常表示時間點、方向或移動目的地。" },
+                    { text: "が", correct: false, desc: "「が」用於標示主語或特定能力/喜好形容詞的主題對象。" }
+                ],
+                explanation: "正確答案是 **2. で**。<br>解析：當表示「使用某種語言或工具」來做動作時，需使用助詞「で」。"
+            },
+            {
+                title: "昨日、図書館（ ）本を借りました。",
+                options: [
+                    { text: "で", correct: true, desc: "「で」在此表示發生動作的場所（在圖書館裡借書）。" },
+                    { text: "に", correct: false, desc: "「に」表示存在的靜止點或移動到達點，若借書的動作本身發生在該場所，一般用「で」。" },
+                    { text: "を", correct: false, desc: "「を」標示受詞，這裡空格前面已經接了場所名。" },
+                    { text: "から", correct: false, desc: "「から」表示「從...起（出發點或來源）」。" }
+                ],
+                explanation: "正確答案是 **1. で**。<br>解析：在某個場所進行某個具體動作（如在圖書館看書、借書、買東西），場所後面要用助詞「で」。"
+            },
+            {
+                title: "この部屋は明るく（ ）、広いです。",
+                options: [
+                    { text: "て", correct: true, desc: "「い形容詞」的並列連接形式。去「い」改為「くて」。" },
+                    { text: "で", correct: false, desc: "「で」用於連接「な形容詞」或名詞，い形容詞不能直接加で。" },
+                    { text: "く", correct: false, desc: "「く」是單獨的副詞化或中頓形，並列連接必須用「くて」。" },
+                    { text: "い", correct: false, desc: "語法結構不符。" }
+                ],
+                explanation: "正確答案是 **1. て (くて)**。<br>解析：形容詞並列時，い形容詞「明るい」去い加上「くて」，變成「明るくて、広いです（又明亮又寬敞）」。"
+            },
+            {
+                title: "あそこに綺麗な花が（ ）。",
+                options: [
+                    { text: "います", correct: false, desc: "「います」用於有生命的人或動物（如貓、狗、人）。" },
+                    { text: "あります", correct: true, desc: "「あります」用於無生命的物品、植物（如花、樹木、建築物）。" },
+                    { text: "します", correct: false, desc: "「します」意指「做、從事」。" },
+                    { text: "なります", correct: false, desc: "「なります」意指「變成」。" }
+                ],
+                explanation: "正確答案是 **2. あります**。<br>解析：花（はな）屬於植物，在日文表達「存在」時，無生命物體與植物使用「あります」。"
+            },
+            {
+                title: "明日、映画を（ ）に行きます。",
+                options: [
+                    { text: "見", correct: true, desc: "動詞連用形（ます形去掉ます）加上「に＋行きます」表示「去做某事」。" },
+                    { text: "見る", correct: false, desc: "不能直接用原形接「に行きます」。" },
+                    { text: "見えて", correct: false, desc: "型態錯誤。" },
+                    { text: "見ます", correct: false, desc: "不能保留ます直接連接。" }
+                ],
+                explanation: "正確答案是 **1. 見**。<br>解析：目的表現句型為「[動詞ます形去ます] + に + 行く/来る/帰る」，表示「去某地做某事」。"
+            }
+        ];
+
+        // 語音朗讀函數
+        function speakJapanese(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // 停止先前的發音
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.9; // 稍微放慢語速，適合學習
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            currentIndex = 0;
+            score = 0;
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'vocab') {
+                document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+                initVocabQuiz();
+            } else {
+                document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+                initGrammarQuiz();
+            }
+            loadQuestion();
+        }
+
+        // 隨機抽選 10 題單字題
+        function initVocabQuiz() {
+            // 從 300 個單字中隨機抽取 10 個
+            const shuffled = [...ALL_VOCABULARY].sort(() => 0.5 - Math.random());
+            currentQuestions = shuffled.slice(0, 10).map(item => {
+                // 產生 3 個錯誤選項
+                const others = ALL_VOCABULARY.filter(v => v.meaning !== item.meaning);
+                const wrongOptions = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+                
+                let options = [
+                    { text: item.meaning, correct: true, wordObj: item },
+                    ...wrongOptions.map(w => ({ text: w.meaning, correct: false, wordObj: w }))
+                ].sort(() => 0.5 - Math.random());
+
+                return {
+                    word: item.word,
+                    reading: item.reading,
+                    meaning: item.meaning,
+                    options: options
+                };
+            });
+        }
+
+        function initGrammarQuiz() {
+            currentQuestions = [...grammarQuestions].sort(() => 0.5 - Math.random());
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= currentQuestions.length) {
+                showScoreCard();
+                return;
+            }
+
+            const q = currentQuestions[currentIndex];
+            const progress = ((currentIndex) / currentQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            document.getElementById('questionTypeLabel').innerText = currentMode === 'vocab' ? '單字選擇題（初學者 300 核心）' : '文法與句型解析';
+            document.getElementById('questionCount').innerText = `題目 ${currentIndex + 1} / ${currentQuestions.length}`;
+
+            const titleContainer = document.getElementById('questionTitle');
+            if (currentMode === 'vocab') {
+                titleContainer.innerHTML = `
+                    <span>請選出「<span style="color:var(--accent);">${q.word}</span> (${q.reading})」的正確中文意思：</span>
+                    <button class="audio-btn" onclick="speakJapanese('${q.word}')" title="聆聽發音">🔊</button>
+                `;
+                // 自動朗讀一次題目單字
+                speakJapanese(q.word);
+            } else {
+                titleContainer.innerHTML = `<span>${q.title}</span>`;
+            }
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${idx + 1}. ${opt.text}</span>`;
+                btn.onclick = () => selectOption(btn, opt, q);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanationBox').className = 'explanation-box';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function selectOption(selectedBtn, selectedOpt, question) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            let isCorrect = selectedOpt.correct;
+            if (isCorrect) score++;
+
+            // 標示對錯
+            allBtns.forEach(b => {
+                // 比對按鈕文字是否包含該選項內容
+                const text = b.innerText.substring(3).trim();
+                const matchedOpt = question.options.find(o => o.text === text);
+                if (matchedOpt && matchedOpt.correct) {
+                    b.classList.add('correct');
+                }
+            });
+
+            if (!isCorrect) {
+                selectedBtn.classList.add('wrong');
+            }
+
+            // 顯示詳解與所有選項說明
+            const expBox = document.getElementById('explanationBox');
+            if (currentMode === 'vocab') {
+                let html = `<strong>💡 本題選項解析：</strong><br><ul style="margin-left:20px; margin-top:8px; line-height:1.8;">`;
+                question.options.forEach(o => {
+                    html += `<li><b>${o.wordObj.word}</b> (${o.wordObj.reading})：${o.wordObj.meaning} ${o.correct ? ' <span style="color:var(--success); font-weight:bold;">(正確)</span>' : ''}</li>`;
+                });
+                html += `</ul>`;
+                expBox.innerHTML = html;
+            } else {
+                expBox.innerHTML = `<strong>💡 解析：</strong><br>${question.explanation}`;
+            }
+
+            expBox.classList.add('show');
+            document.getElementById('nextBtn').style.display = 'block';
+            updateStats();
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            loadQuestion();
+        }
+
+        function showScoreCard() {
+            document.getElementById('progressFill').style.width = `100%`;
+            const percentage = Math.round((score / currentQuestions.length) * 100);
+            
+            document.getElementById('questionTitle').innerText = `🎉 恭喜完成本輪複習！`;
+            document.getElementById('optionsContainer').innerHTML = `
+                <div style="text-align: center; padding: 20px; font-size: 1.1rem;">
+                    你的得分：<b>${score} / ${currentQuestions.length}</b> (${percentage}分)<br><br>
+                    <span style="color: var(--text-sub); font-size: 0.95rem;">上班偷閒複習很有成效！隨時可以點擊下方按鈕再次挑戰。</span>
+                </div>
+            `;
+            document.getElementById('explanationBox').className = 'explanation-box';
+            
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.innerText = '重新開始複習';
+            nextBtn.style.display = 'block';
+            nextBtn.onclick = () => {
+                nextBtn.innerText = '下一題';
+                nextBtn.onclick = nextQuestion;
+                switchMode(currentMode);
+            };
+        }
+
+        function updateStats() {
+            const answered = currentIndex + 1;
+            const currentScoreRate = Math.round((score / answered) * 100) || 0;
+            document.getElementById('statsText').innerText = `已作答：${currentIndex + 1} / ${currentQuestions.length} 題 | 目前正確率：${currentScoreRate}%`;
+        }
+
+        // 初始化載入
+        initVocabQuiz();
+        loadQuestion();
+    </script>
+</body>
+</html>
